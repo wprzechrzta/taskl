@@ -35,20 +35,20 @@ type TaskList struct {
 	Tasks []Task `json:"tasks"`
 }
 
-type TaskRepository struct {
+type Repository struct {
 	StoragePath string
 }
 
-func NewRepository(storagePath string) *TaskRepository {
+func NewRepository(storagePath string) *Repository {
 	dbPath := filepath.Join(storagePath, storageFilename)
 	err := os.MkdirAll(storagePath, os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return &TaskRepository{StoragePath: dbPath}
+	return &Repository{StoragePath: dbPath}
 }
 
-func (to *TaskRepository) GetAll() (*TaskList, error) {
+func (to *Repository) GetAll() (*TaskList, error) {
 	if _, err := os.Stat(to.StoragePath); os.IsNotExist(err) {
 		Log("Database file not exists, loc: %v", to.StoragePath)
 		return &TaskList{}, nil
@@ -68,7 +68,7 @@ func (to *TaskRepository) GetAll() (*TaskList, error) {
 	return &tasks, nil
 }
 
-func (to *TaskRepository) Create(t Task) error {
+func (to *Repository) Create(t Task) error {
 	Log("Creating task: %+v", t)
 	t.Id = nextId()
 	t.Date = time.Now()
@@ -78,7 +78,7 @@ func (to *TaskRepository) Create(t Task) error {
 	allTasks.Tasks = append(allTasks.Tasks, t)
 	data, err := json.MarshalIndent(allTasks, "", " ")
 	if err != nil {
-		return errors.WithMessage(err, "TaskRepository: Failed to marshal task")
+		return errors.WithMessage(err, "Repository: Failed to marshal task")
 	}
 	Log("Create: storing data, loc: %v", to.StoragePath)
 	return ioutil.WriteFile(to.StoragePath, data, 0644)

@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/wprzechrzta/taskl/cmd/taskl/commands"
-	"github.com/wprzechrzta/taskl/cmd/taskl/env"
-	"github.com/wprzechrzta/taskl/cmd/taskl/task"
+	"github.com/wprzechrzta/taskl/internal/task"
 	"log"
 	"os"
 )
@@ -12,15 +10,15 @@ import (
 const defualtStoragePath = "./tmp/.taskl/storage"
 const dateFormat = "02 January 2006"
 
-func ParseAndRun(args []string, config env.AppConfig) error {
+func parseAndRun(args []string, config AppConfig) error {
 	if len(args) < 1 {
 		log.Println("Running default subcommand: ListCommand")
 		return nil
 	}
 	taskOperations := task.NewRepository(config.StoragePath)
 
-	cmds := []commands.ArgRunner{
-		commands.NewTaskCommand(taskOperations),
+	cmds := []ArgRunner{
+		NewTaskCommand(taskOperations),
 	}
 
 	subcommand := args[0]
@@ -34,9 +32,9 @@ func ParseAndRun(args []string, config env.AppConfig) error {
 }
 
 func main() {
-	appConfig := env.AppConfig{StoragePath: defualtStoragePath}
+	appConfig := AppConfig{StoragePath: defualtStoragePath}
 	log.Println("Starting app...")
-	if err := ParseAndRun(os.Args[1:], appConfig); err != nil {
+	if err := parseAndRun(os.Args[1:], appConfig); err != nil {
 		log.Fatal("Failed to process request, %w", err)
 	}
 }

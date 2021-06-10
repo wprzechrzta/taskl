@@ -10,12 +10,12 @@ import (
 
 type CreateTaskCommand struct {
 	fs           *flag.FlagSet
-	taskOperator *task.TaskOperator
+	taskOperator *task.TaskRepository
 	board        string
 	body         string
 }
 
-func NewTaskCommand(taskOperator *task.TaskOperator) *CreateTaskCommand {
+func NewTaskCommand(taskOperator *task.TaskRepository) *CreateTaskCommand {
 	tc := &CreateTaskCommand{fs: flag.NewFlagSet("t", flag.PanicOnError), taskOperator: taskOperator}
 	tc.fs.StringVar(&tc.board, "b", "My Board", "Board taskOperator attach task")
 	return tc

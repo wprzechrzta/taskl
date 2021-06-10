@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-const defualtStoragePath = "/Users/jotus/.taskl/storage"
+const defualtStoragePath = "./tmp/.taskl/storage"
 const dateFormat = "02 January 2006"
 
 func ParseAndRun(args []string, config env.AppConfig) error {
@@ -17,7 +17,7 @@ func ParseAndRun(args []string, config env.AppConfig) error {
 		log.Println("Running default subcommand: ListCommand")
 		return nil
 	}
-	taskOperations := task.NewTaskOperator(config.StoragePath)
+	taskOperations := task.NewRepository(config.StoragePath)
 
 	cmds := []commands.ArgRunner{
 		commands.NewTaskCommand(taskOperations),

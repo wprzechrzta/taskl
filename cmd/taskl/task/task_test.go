@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestTaskOperator_Create(t *testing.T) {
+func TestTaskOperator_CreateEmptyList(t *testing.T) {
 	f, err := os.MkdirTemp("", "")
 	assert.NoError(t, err)
 	defer os.RemoveAll(f)
@@ -28,14 +28,29 @@ func TestShouldLoadExistingData(t *testing.T) {
 			Description: "Example task descriptioin",
 			Boards:      []string{"Default Board"},
 		},
+		Task{
+			Description: "Another task",
+			Boards:      []string{"Default Board"},
+		},
+		Task{
+			Id:          5,
+			Description: "Fifth task",
+			Boards:      []string{"Default Board"},
+		},
 	}}
 
 	repository := NewRepository(f)
 
-	err = repository.Create(expected.Tasks[0])
+	loaded, err := repository.GetAll()
+	assert.Equal(t, 0, len(loaded.Tasks))
+
+	for _, task := range expected.Tasks {
+		err = repository.Create(task)
+		assert.NoError(t, err)
+	}
 	assert.NoError(t, err)
 
-	loaded, err := repository.GetAll()
+	loaded, err = repository.GetAll()
 	assert.Equal(t, len(expected.Tasks), len(loaded.Tasks))
 
 }

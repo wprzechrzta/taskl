@@ -5,7 +5,6 @@ import (
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"time"
@@ -70,11 +69,18 @@ func (to *Repository) GetAll() (*TaskList, error) {
 
 func (to *Repository) Create(t Task) error {
 	Log("Creating task: %+v", t)
-	t.Id = nextId()
+	if t.Id < 1 {
+		id, err := to.nextId()
+		if err != nil {
+			return err
+		}
+		t.Id = id
+	}
 	t.Date = time.Now()
-
-	//TODO: loadCurrentDB and calculate next id
-	allTasks := TaskList{}
+	allTasks, err := to.GetAll()
+	if err != nil {
+		return err
+	}
 	allTasks.Tasks = append(allTasks.Tasks, t)
 	data, err := json.MarshalIndent(allTasks, "", " ")
 	if err != nil {
@@ -84,6 +90,16 @@ func (to *Repository) Create(t Task) error {
 	return ioutil.WriteFile(to.StoragePath, data, 0644)
 }
 
-func nextId() int {
-	return rand.Intn(100)
+func (rep *Repository) nextId() (int, error) {
+	tl, err := rep.GetAll()
+	if err != nil {
+		return -1, err
+	}
+	var max int
+	for id := range tl.Tasks {
+		if max < id {
+			max = id
+		}
+	}
+	return max + 1, nil
 }

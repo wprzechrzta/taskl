@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/wprzechrzta/taskl/internal/task"
+	task2 "github.com/wprzechrzta/taskl/cmd/taskl/task"
 	"log"
 	"os"
 )
@@ -15,7 +15,7 @@ func parseAndRun(args []string, config AppConfig) error {
 		log.Println("Running default subcommand: ListCommand")
 		return nil
 	}
-	taskOperations := task.NewRepository(config.StoragePath)
+	taskOperations := task2.NewRepository(config.StoragePath)
 
 	cmds := []ArgRunner{
 		NewTaskCommand(taskOperations),

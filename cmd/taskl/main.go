@@ -11,13 +11,13 @@ const defualtStoragePath = "./tmp/.taskl/storage"
 const dateFormat = "02 January 2006"
 
 func parseAndRun(args []string, config AppConfig) error {
+	defaultCommand := "listall"
 	if len(args) < 1 {
-		log.Println("Running default subcommand: ListCommand")
-		return nil
+		args = append(args, defaultCommand)
 	}
 	taskOperations := task2.NewRepository(config.StoragePath)
-
 	cmds := []ArgRunner{
+		NewListCommand(taskOperations),
 		NewTaskCommand(taskOperations),
 	}
 

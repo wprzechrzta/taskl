@@ -6,12 +6,53 @@ import (
 	"github.com/pkg/errors"
 	task2 "github.com/wprzechrzta/taskl/cmd/taskl/task"
 	"log"
+	"strings"
 )
 
 type ArgRunner interface {
 	Init([]string) error
 	Run() error
 	Name() string
+}
+
+type ListCommand struct {
+	fs         *flag.FlagSet
+	repository *task2.Repository
+}
+
+func NewListCommand(repo *task2.Repository) *ListCommand {
+	lc := &ListCommand{fs: flag.NewFlagSet("listall", flag.PanicOnError), repository: repo}
+	return lc
+}
+
+func (l *ListCommand) Init(args []string) error {
+	if err := l.fs.Parse(args); err != nil {
+		return errors.WithMessagef(err, "%s: Failed parse ", l.Name())
+	}
+	return nil
+}
+
+func (l *ListCommand) Run() error {
+	tl, err := l.repository.GetAll()
+	if err != nil {
+		return errors.WithMessagef(err, "%s: Failed to fetch tasks ", l.Name())
+	}
+
+	sb := strings.Builder{}
+	for _, task := range tl.Tasks {
+		if _, err = sb.WriteString(fmt.Sprintf("%d. %s \n", task.Id, task.Description)); err != nil {
+			return err
+		}
+	}
+	if _, err := sb.WriteString(fmt.Sprintf("Total: %d\n", len(tl.Tasks))); err != nil {
+		return err
+	}
+	fmt.Println(sb.String())
+	return err
+}
+
+func (l *ListCommand) Name() string {
+	return l.fs.Name()
 }
 
 type CreateTaskCommand struct {

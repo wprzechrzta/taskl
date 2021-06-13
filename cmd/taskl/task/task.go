@@ -26,7 +26,7 @@ type Task struct {
 	Description string    `json:"description"`
 	Boards      []string  `json:"boards"`
 	InProgress  bool      `json:"inProgress"`
-	IsCanelled  bool      `json:"isCanelled"`
+	IsCanelled  bool      `json:"isCancelled"`
 	IsComplete  bool      `json:"isComplete"`
 }
 
@@ -49,7 +49,7 @@ func NewRepository(storagePath string) *Repository {
 
 func (to *Repository) GetAll() (*TaskList, error) {
 	if _, err := os.Stat(to.StoragePath); os.IsNotExist(err) {
-		Log("Database file not exists, loc: %v", to.StoragePath)
+		//Log("Database file not exists, loc: %v", to.StoragePath)
 		return &TaskList{}, nil
 	}
 
@@ -63,7 +63,7 @@ func (to *Repository) GetAll() (*TaskList, error) {
 		return nil, errors.WithMessage(err, "Failed to unmarshal storage")
 	}
 
-	Log("GetAll: %v", tasks)
+	//Log("GetAll: %v", tasks)
 	return &tasks, nil
 }
 
@@ -84,9 +84,9 @@ func (to *Repository) Create(t Task) error {
 	allTasks.Tasks = append(allTasks.Tasks, t)
 	data, err := json.MarshalIndent(allTasks, "", " ")
 	if err != nil {
-		return errors.WithMessage(err, "Repository: Failed to marshal task")
+		return errors.WithMessage(err, "Repository: Failed to marshal tasks")
 	}
-	Log("Create: storing data, loc: %v", to.StoragePath)
+	Log("Create: storing data, loc: %v, data: %v", to.StoragePath, allTasks)
 	return ioutil.WriteFile(to.StoragePath, data, 0644)
 }
 
@@ -96,9 +96,9 @@ func (rep *Repository) nextId() (int, error) {
 		return -1, err
 	}
 	var max int
-	for id := range tl.Tasks {
-		if max < id {
-			max = id
+	for _, task := range tl.Tasks {
+		if max < task.Id {
+			max = task.Id
 		}
 	}
 	return max + 1, nil

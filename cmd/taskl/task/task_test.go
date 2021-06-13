@@ -54,3 +54,41 @@ func TestShouldLoadExistingData(t *testing.T) {
 	assert.Equal(t, len(expected.Tasks), len(loaded.Tasks))
 
 }
+
+func Test_AddTaskAndIncrementId(t *testing.T) {
+	f, err := os.MkdirTemp("", "")
+	assert.NoError(t, err)
+	defer os.RemoveAll(f)
+
+	task := Task{
+		Description: "Example task descriptioin",
+		Boards:      []string{"Default Board"},
+	}
+	repository := NewRepository(f)
+
+	//when
+	loaded, err := repository.GetAll()
+	assert.Equal(t, 0, len(loaded.Tasks))
+
+	//add task
+	err = repository.Create(task)
+	assert.NoError(t, err)
+
+	loaded, err = repository.GetAll()
+	assert.Equal(t, 1, len(loaded.Tasks))
+	assert.Equal(t, 1, loaded.Tasks[0].Id)
+
+	//add task
+	task = Task{
+		Description: "Second taks",
+		Boards:      []string{"Default Board"},
+	}
+	err = repository.Create(task)
+	assert.NoError(t, err)
+
+	loaded, err = repository.GetAll()
+	assert.Equal(t, 2, len(loaded.Tasks))
+	assert.Equal(t, 1, loaded.Tasks[0].Id)
+	assert.Equal(t, 2, loaded.Tasks[1].Id)
+
+}

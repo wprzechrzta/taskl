@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 	task2 "github.com/wprzechrzta/taskl/cmd/taskl/task"
 	"log"
-	"strings"
+	"os"
 )
 
 type ArgRunner interface {
@@ -35,19 +35,13 @@ func (l *ListCommand) Init(args []string) error {
 func (l *ListCommand) Run() error {
 	tl, err := l.repository.GetAll()
 	if err != nil {
-		return errors.WithMessagef(err, "%s: Failed to fetch tasks ", l.Name())
+		return errors.WithMessagef(err, "%s: Failed to fetch Tasks ", l.Name())
 	}
-
-	sb := strings.Builder{}
-	for _, task := range tl.Tasks {
-		if _, err = sb.WriteString(fmt.Sprintf("%d. %s \n", task.Id, task.Description)); err != nil {
-			return err
-		}
-	}
-	if _, err := sb.WriteString(fmt.Sprintf("Total: %d\n", len(tl.Tasks))); err != nil {
+	summary, err := calculateSummary(tl)
+	if err != nil {
 		return err
 	}
-	fmt.Println(sb.String())
+	renderOutput(os.Stdout, summary)
 	return err
 }
 
@@ -84,7 +78,7 @@ func (tc *CreateTaskCommand) Init(args []string) error {
 }
 
 func (tc *CreateTaskCommand) Run() error {
-	log.Printf("Running command: %s, boardName: %s", tc.Name(), tc.board)
+	log.Printf("Running command: %s, BoardName: %s", tc.Name(), tc.board)
 	var t task2.Task
 	t.Boards = append(t.Boards, tc.board)
 	t.Description = tc.body

@@ -1,46 +1,70 @@
 package main
 
 import (
+	"fmt"
 	"github.com/wprzechrzta/taskl/cmd/taskl/task"
 	"io"
+	"text/template"
 )
 
 type TaskSummary struct {
-	tasks       task.TaskList
-	total       int
-	done        int
-	canceled    int
-	pending     int
-	inProgress  int
-	donePercent int
-	boardName   string
+	Tasks       task.TaskList
+	Total       int
+	Done        int
+	Canceled    int
+	Pending     int
+	InProgress  int
+	DonePercent int
+	BoardName   string
 }
 
-func calculateSummary(taskList task.TaskList) (TaskSummary, error) {
-	summary := TaskSummary{tasks: taskList}
+func calculateSummary(taskList *task.TaskList) (TaskSummary, error) {
+	summary := TaskSummary{Tasks: *taskList}
 	for _, task := range taskList.Tasks {
-		if summary.boardName == "" {
-			summary.boardName = task.Boards[0]
+		if summary.BoardName == "" {
+			summary.BoardName = task.Boards[0]
 		}
 
 		if task.IsComplete {
-			summary.done += 1
+			summary.Done += 1
 		} else if task.IsCanelled {
-			summary.canceled += 1
+			summary.Canceled += 1
 		} else if task.InProgress {
-			summary.inProgress += 1
+			summary.InProgress += 1
 		} else {
-			summary.pending += 1
+			summary.Pending += 1
 		}
 	}
 
-	summary.total = len(taskList.Tasks)
-	if summary.total > 0 {
-		summary.donePercent = int((float32(summary.done) + float32(summary.canceled)) / float32(summary.total) * 100)
+	summary.Total = len(taskList.Tasks)
+	if summary.Total > 0 {
+		summary.DonePercent = int((float32(summary.Done) + float32(summary.Canceled)) / float32(summary.Total) * 100)
 	}
 	return summary, nil
 }
-func renderOutput(out io.Writer, summary TaskSummary) error {
 
-	return nil
+func toStatus(task task.Task) string {
+	result := "☐"
+	if task.InProgress {
+		result = "…"
+	} else if task.IsCanelled {
+		result = "✖"
+	} else if task.IsComplete {
+		result = "✓"
+	}
+	return result
+}
+
+func renderOutput(out io.Writer, summary TaskSummary) error {
+	templ := `{{.BoardName}} [{{.Done}}/{{.Total}}]
+  {{range .Tasks.Tasks}}{{ .Id}}. {{. | toStatus}} {{.Description}} (2 hours)
+  {{end}}
+`
+	//outputTemplate := template.Must(template.New("output").Parse(templ))
+	outputTemplate, err := template.New("output").Funcs(template.FuncMap{"toStatus": toStatus}).Parse(templ)
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+	return outputTemplate.Execute(out, summary)
 }

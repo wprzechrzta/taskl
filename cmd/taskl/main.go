@@ -10,6 +10,14 @@ import (
 const defualtStoragePath = "./tmp/.taskl/storage"
 const dateFormat = "02 January 2006"
 
+var verbose = false
+
+func Log(fmt string, args ...interface{}) {
+	if verbose {
+		log.Printf(fmt, args...)
+	}
+}
+
 func parseAndRun(args []string, config AppConfig) error {
 	defaultCommand := "listall"
 	if len(args) < 1 {
@@ -20,6 +28,7 @@ func parseAndRun(args []string, config AppConfig) error {
 		NewListCommand(taskOperations),
 		NewTaskCommand(taskOperations),
 		NewBeginTaskCommand(taskOperations),
+		NewCompleteCommand(taskOperations),
 	}
 
 	subcommand := args[0]

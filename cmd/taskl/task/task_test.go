@@ -47,7 +47,7 @@ func TestShouldLoadExistingData(t *testing.T) {
 	assert.Equal(t, 0, len(loaded.Tasks))
 
 	for _, task := range expected.Tasks {
-		err = repository.Create(task)
+		_, err = repository.Create(task)
 		assert.NoError(t, err)
 	}
 	assert.NoError(t, err)
@@ -73,7 +73,7 @@ func Test_AddTaskAndIncrementId(t *testing.T) {
 	assert.Equal(t, 0, len(loaded.Tasks))
 
 	//add task
-	err = repository.Create(task)
+	_, err = repository.Create(task)
 	assert.NoError(t, err)
 
 	loaded, err = repository.GetAll()
@@ -85,7 +85,7 @@ func Test_AddTaskAndIncrementId(t *testing.T) {
 		Description: "Second taks",
 		Boards:      []string{"Default Board"},
 	}
-	err = repository.Create(task)
+	_, err = repository.Create(task)
 	assert.NoError(t, err)
 
 	loaded, err = repository.GetAll()
@@ -106,7 +106,7 @@ func TestRepository_Start(t *testing.T) {
 		Boards:      []string{"MyBoard"},
 	}
 	repository := NewRepository(f)
-	err = repository.Create(task)
+	_, err = repository.Create(task)
 
 	loaded, err := repository.GetAll()
 	assert.NoError(t, err)
@@ -133,7 +133,7 @@ func TestRepository_Cancel(t *testing.T) {
 		Boards:      []string{"MyBoard"},
 	}
 	repository := NewRepository(f)
-	err = repository.Create(task)
+	_, err = repository.Create(task)
 
 	loaded, err := repository.GetAll()
 	assert.NoError(t, err)
@@ -159,7 +159,7 @@ func TestRepository_Done(t *testing.T) {
 		Boards:      []string{"MyBoard"},
 	}
 	repository := NewRepository(f)
-	err = repository.Create(task)
+	_, err = repository.Create(task)
 
 	loaded, err := repository.GetAll()
 	assert.NoError(t, err)

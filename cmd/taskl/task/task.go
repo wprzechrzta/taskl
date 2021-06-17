@@ -13,7 +13,7 @@ import (
 
 const storageFilename = "taskl.json"
 
-var verbose = true
+var verbose = false
 
 func Log(fmt string, args ...interface{}) {
 	if verbose {
@@ -59,7 +59,6 @@ func (to *Repository) update(id int, updateStrategy action) error {
 	for idx := range tl.Tasks {
 		if tl.Tasks[idx].Id == id {
 			taskIdx = idx
-			log.Println("found task:", idx)
 			break
 		}
 	}
@@ -72,19 +71,26 @@ func (to *Repository) update(id int, updateStrategy action) error {
 
 func (rep *Repository) Start(id int) error {
 	return rep.update(id, func(task *Task) {
-		log.Printf("Updating task: %+v", task)
+		Log("Updating task: %+v", task)
 		task.InProgress = true
+		task.IsCanelled = false
+		task.IsComplete = false
 	})
 }
 
 func (rep *Repository) Cancel(id int) error {
 	return rep.update(id, func(task *Task) {
 		task.IsCanelled = true
+		task.IsComplete = true
+		task.InProgress = false
 	})
 }
+
 func (rep *Repository) Complete(id int) error {
 	return rep.update(id, func(task *Task) {
 		task.IsComplete = true
+		task.InProgress = false
+		task.IsCanelled = false
 	})
 }
 
@@ -108,27 +114,30 @@ func (to *Repository) GetAll() (*TaskList, error) {
 	return &tasks, nil
 }
 
-func (to *Repository) Create(t Task) error {
+func (to *Repository) Create(t Task) (*Task, error) {
 	Log("Creating task: %+v", t)
 	if t.Id < 1 {
 		id, err := to.nextId()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		t.Id = id
 	}
 	t.Date = time.Now()
 	allTasks, err := to.GetAll()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	allTasks.Tasks = append(allTasks.Tasks, t)
 	data, err := json.MarshalIndent(allTasks, "", " ")
 	if err != nil {
-		return errors.WithMessage(err, "Repository: Failed to marshal tasks")
+		return nil, errors.WithMessage(err, "Repository: Failed to marshal tasks")
 	}
 	Log("Create: storing data, loc: %v, data: %v", to.StoragePath, allTasks)
-	return ioutil.WriteFile(to.StoragePath, data, 0644)
+	if err := ioutil.WriteFile(to.StoragePath, data, 0644); err != nil {
+		return nil, err
+	}
+	return &t, nil
 }
 func (to *Repository) save(list *TaskList) error {
 	data, err := json.MarshalIndent(list, "", " ")

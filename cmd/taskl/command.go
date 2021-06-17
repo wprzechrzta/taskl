@@ -7,6 +7,7 @@ import (
 	task2 "github.com/wprzechrzta/taskl/cmd/taskl/task"
 	"log"
 	"os"
+	"strconv"
 )
 
 type ArgRunner interface {
@@ -49,6 +50,48 @@ func (l *ListCommand) Name() string {
 	return l.fs.Name()
 }
 
+//Begin command
+type BeginCommand struct {
+	fs         *flag.FlagSet
+	repository *task2.Repository
+	board      string
+	taskId     int
+}
+
+func NewBeginTaskCommand(repo *task2.Repository) *BeginCommand {
+	c := &BeginCommand{fs: flag.NewFlagSet("b", flag.PanicOnError), repository: repo}
+	c.fs.StringVar(&c.board, "b", "My Board", "Board repo attach task")
+	return c
+}
+
+func (b *BeginCommand) Init(args []string) error {
+	if err := b.fs.Parse(args); err != nil {
+		return errors.WithMessagef(err, "%s: Failed parse ", b.Name())
+	}
+
+	if len(b.fs.Args()) < 1 {
+		return fmt.Errorf("BeginComand: Missing task id")
+	}
+
+	taskIdStr := b.fs.Arg(0)
+	if taskId, err := strconv.Atoi(taskIdStr); err != nil {
+		return errors.WithMessagef(err, "BeginCommand: Task id should be integer value, provided: %v", taskIdStr)
+	} else {
+		b.taskId = taskId
+	}
+
+	return nil
+}
+
+func (b *BeginCommand) Run() error {
+	return b.repository.Start(b.taskId)
+}
+
+func (b *BeginCommand) Name() string {
+	return b.fs.Name()
+}
+
+//Create command
 type CreateTaskCommand struct {
 	fs         *flag.FlagSet
 	repository *task2.Repository

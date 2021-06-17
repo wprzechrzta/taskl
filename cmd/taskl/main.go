@@ -19,12 +19,15 @@ func parseAndRun(args []string, config AppConfig) error {
 	cmds := []ArgRunner{
 		NewListCommand(taskOperations),
 		NewTaskCommand(taskOperations),
+		NewBeginTaskCommand(taskOperations),
 	}
 
 	subcommand := args[0]
 	for _, cmd := range cmds {
 		if cmd.Name() == subcommand {
-			cmd.Init(args[1:])
+			if err := cmd.Init(args[1:]); err != nil {
+				return err
+			}
 			return cmd.Run()
 		}
 	}
@@ -33,8 +36,7 @@ func parseAndRun(args []string, config AppConfig) error {
 
 func main() {
 	appConfig := AppConfig{StoragePath: defualtStoragePath}
-	log.Println("Starting app...")
 	if err := parseAndRun(os.Args[1:], appConfig); err != nil {
-		log.Fatal("Failed to process request, %w", err)
+		log.Fatalf("Failed to process request, %+w", err)
 	}
 }

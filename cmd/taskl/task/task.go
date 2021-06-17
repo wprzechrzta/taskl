@@ -2,6 +2,7 @@ package task
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
@@ -47,6 +48,46 @@ func NewRepository(storagePath string) *Repository {
 	return &Repository{StoragePath: dbPath}
 }
 
+type action func(task *Task)
+
+func (to *Repository) update(id int, updateStrategy action) error {
+	tl, err := to.GetAll()
+	if err != nil {
+		return err
+	}
+	taskIdx := -1
+	for idx := range tl.Tasks {
+		if tl.Tasks[idx].Id == id {
+			taskIdx = idx
+			log.Println("found task:", idx)
+			break
+		}
+	}
+	if taskIdx < 0 {
+		return fmt.Errorf("Update: Task with id: %d does not exists", id)
+	}
+	updateStrategy(&tl.Tasks[taskIdx])
+	return to.save(tl)
+}
+
+func (rep *Repository) Start(id int) error {
+	return rep.update(id, func(task *Task) {
+		log.Printf("Updating task: %+v", task)
+		task.InProgress = true
+	})
+}
+
+func (rep *Repository) Cancel(id int) error {
+	return rep.update(id, func(task *Task) {
+		task.IsCanelled = true
+	})
+}
+func (rep *Repository) Complete(id int) error {
+	return rep.update(id, func(task *Task) {
+		task.IsComplete = true
+	})
+}
+
 func (to *Repository) GetAll() (*TaskList, error) {
 	if _, err := os.Stat(to.StoragePath); os.IsNotExist(err) {
 		//Log("Database file not exists, loc: %v", to.StoragePath)
@@ -87,6 +128,14 @@ func (to *Repository) Create(t Task) error {
 		return errors.WithMessage(err, "Repository: Failed to marshal tasks")
 	}
 	Log("Create: storing data, loc: %v, data: %v", to.StoragePath, allTasks)
+	return ioutil.WriteFile(to.StoragePath, data, 0644)
+}
+func (to *Repository) save(list *TaskList) error {
+	data, err := json.MarshalIndent(list, "", " ")
+	if err != nil {
+		return errors.WithMessage(err, "Repository: Failed to marshal tasks")
+	}
+	Log("save: storing  data: %v", list)
 	return ioutil.WriteFile(to.StoragePath, data, 0644)
 }
 

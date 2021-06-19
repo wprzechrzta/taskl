@@ -56,12 +56,18 @@ func toStatus(task task.Task) string {
 }
 
 func renderOutput(out io.Writer, summary TaskSummary) error {
-	templ := `{{.BoardName}} [{{.Done}}/{{.Total}}]
+	templ := `{{.BoardName}} [{{ completedTasks .}}/{{.Total}}]
   {{range .Tasks.Tasks}}{{ .Id}}. {{. | toStatus}} {{.Description}} (2 hours)
   {{end}}
+{{.Done}} done · {{.Canceled}} canceled · {{.InProgress}} in-progress · {{.Pending}} pending
 `
-	//outputTemplate := template.Must(template.New("output").Parse(templ))
-	outputTemplate, err := template.New("output").Funcs(template.FuncMap{"toStatus": toStatus}).Parse(templ)
+
+	outputTemplate, err := template.New("output").Funcs(template.FuncMap{
+		"toStatus": toStatus,
+		"completedTasks": func(summary TaskSummary) int {
+			return summary.Done + summary.Canceled
+		},
+	}).Parse(templ)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err

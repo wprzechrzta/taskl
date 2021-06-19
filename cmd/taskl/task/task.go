@@ -96,7 +96,7 @@ func (rep *Repository) Start(id int) error {
 func (rep *Repository) Cancel(id int) error {
 	return rep.update(id, func(task *Task) {
 		task.IsCanelled = true
-		task.IsComplete = true
+		task.IsComplete = false
 		task.InProgress = false
 	})
 }

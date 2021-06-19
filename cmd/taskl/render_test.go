@@ -47,7 +47,7 @@ func TestCalculateSummary(t *testing.T) {
 
 func TestRenderTaskList(t *testing.T) {
 	assert := assert.New(t)
-	tasks := task.TaskList{Tasks: []task.Task{
+	tasks := task.TaskList{[]task.Task{
 		{
 			Id:          1,
 			Description: "First task to render",

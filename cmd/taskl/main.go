@@ -8,7 +8,6 @@ import (
 )
 
 const defualtStoragePath = "./tmp/.taskl/storage"
-const dateFormat = "02 January 2006"
 
 var verbose = false
 
@@ -48,6 +47,6 @@ func parseAndRun(args []string, config AppConfig) error {
 func main() {
 	appConfig := AppConfig{StoragePath: defualtStoragePath}
 	if err := parseAndRun(os.Args[1:], appConfig); err != nil {
-		log.Fatalf("Failed to process request, %+w", err)
+		log.Fatalf("Failed to process request, %v", err.Error())
 	}
 }

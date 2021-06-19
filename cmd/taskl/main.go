@@ -26,9 +26,10 @@ func parseAndRun(args []string, config AppConfig) error {
 	taskOperations := task2.NewRepository(config.StoragePath)
 	cmds := []ArgRunner{
 		NewListCommand(taskOperations),
-		NewTaskCommand(taskOperations),
+		NewCreateTaskCommand(taskOperations),
 		NewBeginTaskCommand(taskOperations),
 		NewCompleteCommand(taskOperations),
+		NewCancelCommand(taskOperations),
 	}
 
 	subcommand := args[0]

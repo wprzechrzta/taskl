@@ -11,22 +11,22 @@ import (
 func TestCalculateSummary(t *testing.T) {
 	assert := assert.New(t)
 	tasks := task.TaskList{Tasks: []task.Task{
-		task.Task{
+		{
 			Description: "Example task descriptioin",
 			Boards:      []string{"Default Board"},
 			InProgress:  true,
 		},
-		task.Task{
+		{
 			Description: "Another task",
 			Boards:      []string{"Default Board"},
 			IsCanelled:  true,
 		},
-		task.Task{
+		{
 			Id:          5,
 			Description: "Fifth task",
 			Boards:      []string{"Default Board"},
 		},
-		task.Task{
+		{
 			Id:          6,
 			Description: "Fifth task",
 			Boards:      []string{"Default Board"},
@@ -48,24 +48,24 @@ func TestCalculateSummary(t *testing.T) {
 func TestRenderTaskList(t *testing.T) {
 	assert := assert.New(t)
 	tasks := task.TaskList{Tasks: []task.Task{
-		task.Task{
+		{
 			Id:          1,
 			Description: "First task to render",
 			Boards:      []string{"Default Board"},
 			InProgress:  true,
 		},
-		task.Task{
+		{
 			Id:          2,
 			Description: "Another task",
 			Boards:      []string{"Default Board"},
 			IsCanelled:  true,
 		},
-		task.Task{
+		{
 			Id:          5,
 			Description: "Fifth task",
 			Boards:      []string{"Default Board"},
 		},
-		task.Task{
+		{
 			Id:          6,
 			Description: "Last task to render",
 			Boards:      []string{"Default Board"},

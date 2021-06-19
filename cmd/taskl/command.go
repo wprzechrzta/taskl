@@ -9,6 +9,13 @@ import (
 	"strconv"
 )
 
+type BasicCommand struct {
+	fs         *flag.FlagSet
+	repository *task2.Repository
+	board      string
+	taskId     int
+}
+
 type ArgRunner interface {
 	Init([]string) error
 	Run() error
@@ -51,20 +58,12 @@ func (l *ListCommand) Name() string {
 
 //Begin command
 type BeginCommand struct {
-	fs         *flag.FlagSet
-	repository *task2.Repository
-	board      string
-	taskId     int
+	*BasicCommand
 }
 
 func NewBeginTaskCommand(repo *task2.Repository) *BeginCommand {
-	c := &BeginCommand{fs: flag.NewFlagSet("b", flag.PanicOnError), repository: repo}
+	c := &BeginCommand{&BasicCommand{fs: flag.NewFlagSet("b", flag.PanicOnError), repository: repo}}
 	c.fs.StringVar(&c.board, "b", "My Board", "Board repo attach task")
-	return c
-}
-func NewCompleteCommand(repo *task2.Repository) *CompleteCommand {
-	c := &CompleteCommand{fs: flag.NewFlagSet("c", flag.PanicOnError), repository: repo}
-	c.fs.StringVar(&c.board, "c", "My Board", "Board name tasks belongs to ")
 	return c
 }
 
@@ -99,11 +98,14 @@ func (b *BeginCommand) Name() string {
 	return b.fs.Name()
 }
 
+func NewCompleteCommand(repo *task2.Repository) *CompleteCommand {
+	c := &CompleteCommand{&BasicCommand{fs: flag.NewFlagSet("c", flag.PanicOnError), repository: repo}}
+	c.fs.StringVar(&c.board, "b", "My Board", "Board name tasks belongs to ")
+	return c
+}
+
 type CompleteCommand struct {
-	fs         *flag.FlagSet
-	repository *task2.Repository
-	board      string
-	taskId     int
+	*BasicCommand
 }
 
 func (b *CompleteCommand) Init(args []string) error {
@@ -136,7 +138,6 @@ func (b *CompleteCommand) Name() string {
 	return b.fs.Name()
 }
 
-//Create command
 type CreateTaskCommand struct {
 	fs         *flag.FlagSet
 	repository *task2.Repository
@@ -144,7 +145,8 @@ type CreateTaskCommand struct {
 	body       string
 }
 
-func NewTaskCommand(repo *task2.Repository) *CreateTaskCommand {
+// NewCreateTaskCommand creates new task
+func NewCreateTaskCommand(repo *task2.Repository) *CreateTaskCommand {
 	tc := &CreateTaskCommand{fs: flag.NewFlagSet("t", flag.PanicOnError), repository: repo}
 	tc.fs.StringVar(&tc.board, "b", "My Board", "Board repo attach task")
 	return tc
@@ -176,4 +178,44 @@ func (tc *CreateTaskCommand) Run() error {
 	}
 	fmt.Printf("Created task: %d\n", newtask.Id)
 	return nil
+}
+
+type CancelTaskCommand struct {
+	*BasicCommand
+}
+
+func NewCancelCommand(repository *task2.Repository) *CancelTaskCommand {
+	c := &CancelTaskCommand{&BasicCommand{fs: flag.NewFlagSet("cancel", flag.PanicOnError), repository: repository}}
+	c.fs.StringVar(&c.board, "b", "My Board", "Board name tasks belongs to ")
+	return c
+}
+
+func (c *CancelTaskCommand) Init(args []string) error {
+	if err := c.fs.Parse(args); err != nil {
+		return errors.WithMessagef(err, "%s: Failed parse ", c.Name())
+	}
+
+	if len(c.fs.Args()) < 1 {
+		return fmt.Errorf("CancelComand: Missing task id")
+	}
+
+	taskIdStr := c.fs.Arg(0)
+	if taskId, err := strconv.Atoi(taskIdStr); err != nil {
+		return errors.WithMessagef(err, "CancelCommand: Task id should be integer value, provided: %v", taskIdStr)
+	} else {
+		c.taskId = taskId
+	}
+	return nil
+}
+
+func (c *CancelTaskCommand) Run() error {
+	if err := c.repository.Cancel(c.taskId); err != nil {
+		return err
+	}
+	fmt.Printf("Canceled task: %d \n", c.taskId)
+	return nil
+}
+
+func (c *CancelTaskCommand) Name() string {
+	return c.fs.Name()
 }

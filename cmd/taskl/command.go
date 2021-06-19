@@ -219,3 +219,42 @@ func (c *CancelTaskCommand) Run() error {
 func (c *CancelTaskCommand) Name() string {
 	return c.fs.Name()
 }
+
+func NewDeleteCommand(repository *task2.Repository) *DeleteCommand {
+	dc := &DeleteCommand{&BasicCommand{fs: flag.NewFlagSet("d", flag.PanicOnError), repository: repository}}
+	return dc
+}
+
+type DeleteCommand struct {
+	*BasicCommand
+}
+
+func (d *DeleteCommand) Init(args []string) error {
+	if err := d.fs.Parse(args); err != nil {
+		return errors.WithMessagef(err, "%s: Failed parse ", d.Name())
+	}
+
+	if len(d.fs.Args()) < 1 {
+		return fmt.Errorf("DeleteComand: Missing task id")
+	}
+
+	taskIdStr := d.fs.Arg(0)
+	if taskId, err := strconv.Atoi(taskIdStr); err != nil {
+		return errors.WithMessagef(err, "DeleteCommand: Task id should be integer value, provided: %v", taskIdStr)
+	} else {
+		d.taskId = taskId
+	}
+	return nil
+}
+
+func (d *DeleteCommand) Run() error {
+	if err := d.repository.Delete(d.taskId); err != nil {
+		return err
+	}
+	fmt.Printf("Deleted task: %d \n", d.taskId)
+	return nil
+}
+
+func (d *DeleteCommand) Name() string {
+	return d.fs.Name()
+}

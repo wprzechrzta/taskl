@@ -1,6 +1,7 @@
 package task
 
 import (
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"log"
 	"os"
@@ -20,21 +21,69 @@ func TestTaskOperator_CreateEmptyList(t *testing.T) {
 	assert.Equal(t, TaskList{}, *tasks)
 }
 
+func TestShouldRemoveTask(t *testing.T) {
+	f, err := os.MkdirTemp("", "")
+	assert.NoError(t, err)
+	defer os.RemoveAll(f)
+
+	expected := TaskList{Tasks: []Task{
+		{Id: 1,
+			Description: "Example  descriptioin",
+			Boards:      []string{"Default Board"},
+		},
+		{Id: 2,
+			Description: "Another task",
+			Boards:      []string{"Default Board"},
+		},
+		{
+			Id:          5,
+			Description: "Fifth task",
+			Boards:      []string{"Default Board"},
+		},
+	}}
+
+	repository := NewRepository(f)
+
+	for _, task := range expected.Tasks {
+		_, err = repository.Create(task)
+		assert.NoError(t, err)
+	}
+
+	saved, err := repository.GetAll()
+	assert.Equal(t, len(expected.Tasks), len(saved.Tasks))
+
+	err = repository.Delete(2)
+
+	assert.NoError(t, err)
+	saved, err = repository.GetAll()
+	assert.Equal(t, 2, len(saved.Tasks))
+	//assertContains(t, []Task{expected.Tasks[0], expected.Tasks[2]}, saved.Tasks)
+
+}
+
+func assertContains(t *testing.T, expected, actual []Task) {
+	for i := range expected {
+		if diff := cmp.Diff(expected[i], actual[i]); diff != "" {
+			t.Errorf("mismatch (-want +got):\n%s", diff)
+		}
+	}
+}
+
 func TestShouldLoadExistingData(t *testing.T) {
 	f, err := os.MkdirTemp("", "")
 	assert.NoError(t, err)
 	defer os.RemoveAll(f)
 
 	expected := TaskList{Tasks: []Task{
-		Task{
-			Description: "Example task descriptioin",
+		{
+			Description: "Example  descriptioin",
 			Boards:      []string{"Default Board"},
 		},
-		Task{
+		{
 			Description: "Another task",
 			Boards:      []string{"Default Board"},
 		},
-		Task{
+		{
 			Id:          5,
 			Description: "Fifth task",
 			Boards:      []string{"Default Board"},

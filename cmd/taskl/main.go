@@ -30,6 +30,7 @@ func parseAndRun(args []string, config AppConfig) error {
 		NewBeginTaskCommand(taskOperations),
 		NewCompleteCommand(taskOperations),
 		NewCancelCommand(taskOperations),
+		NewDeleteCommand(taskOperations),
 	}
 
 	subcommand := args[0]

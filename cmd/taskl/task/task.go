@@ -69,6 +69,21 @@ func (to *Repository) update(id int, updateStrategy action) error {
 	return to.save(tl)
 }
 
+func (rep *Repository) Delete(id int) error {
+	tl, err := rep.GetAll()
+	if err != nil {
+		return err
+	}
+	var updated []Task
+	for _, task := range tl.Tasks {
+		if task.Id != id {
+			updated = append(updated, task)
+		}
+	}
+	tl.Tasks = updated
+	return rep.save(tl)
+}
+
 func (rep *Repository) Start(id int) error {
 	return rep.update(id, func(task *Task) {
 		Log("Updating task: %+v", task)
@@ -110,7 +125,6 @@ func (to *Repository) GetAll() (*TaskList, error) {
 		return nil, errors.WithMessage(err, "Failed to unmarshal storage")
 	}
 
-	//Log("GetAll: %v", tasks)
 	return &tasks, nil
 }
 
